@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
+import { toast } from 'react-toastify';
 
 type Props = {
   onUpload: (dataUrl: string) => void;
@@ -9,17 +10,53 @@ export default function UploadImage({ onUpload }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const processFile = useCallback((file: File) => {
-    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+    // Validate file type
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Invalid file type. Please upload PNG, JPG, JPEG, or WEBP images.');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string | null;
-      if (result) {
-        onUpload(result);
+
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+    if (file.size > maxSize) {
+      toast.error('File size too large. Maximum size is 10MB.');
+      return;
+    }
+
+    // Validate dimensions (optional but recommended)
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      
+      // Check if image is too small
+      if (img.width < 100 || img.height < 100) {
+        toast.error('Image is too small. Minimum size is 100x100 pixels.');
+        return;
       }
+
+      // Read the file and upload
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string | null;
+        if (result) {
+          onUpload(result);
+        }
+      };
+      reader.onerror = () => {
+        toast.error('Failed to read the image file. Please try again.');
+      };
+      reader.readAsDataURL(file);
     };
-    reader.readAsDataURL(file);
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      toast.error('Failed to load the image. Please ensure it\'s a valid image file.');
+    };
+
+    img.src = objectUrl;
   }, [onUpload]);
 
   const handleFileChange = useCallback(
@@ -60,7 +97,7 @@ export default function UploadImage({ onUpload }: Props) {
       <input
         ref={inputRef}
         type="file"
-        accept="image/png, image/jpeg, image/jpg"
+        accept="image/png, image/jpeg, image/jpg, image/webp"
         style={{ display: 'none' }}
         onChange={handleFileChange}
       />
@@ -95,7 +132,7 @@ export default function UploadImage({ onUpload }: Props) {
           Click to upload or drag and drop
         </div>
         <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-          Or upload an image to begin
+          PNG, JPG, JPEG, or WEBP (MAX. 10MB)
         </div>
       </div>
     </div>

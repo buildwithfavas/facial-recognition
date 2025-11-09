@@ -96,16 +96,47 @@ export function updateFaceByIndex(index: number, name: string, dob?: string, gen
 }
 
 export function calculateAge(dob: string): number {
-  const birthDate = new Date(dob);
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
-  
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
+  try {
+    // Validate input
+    if (!dob || typeof dob !== 'string') {
+      throw new Error('Invalid date of birth');
+    }
+
+    const birthDate = new Date(dob);
+    
+    // Check if date is valid
+    if (isNaN(birthDate.getTime())) {
+      throw new Error('Invalid date format');
+    }
+
+    const today = new Date();
+    
+    // Check if birth date is not in the future
+    if (birthDate > today) {
+      throw new Error('Date of birth cannot be in the future');
+    }
+
+    // Check if age is reasonable (e.g., not more than 150 years)
+    const yearDiff = today.getFullYear() - birthDate.getFullYear();
+    if (yearDiff > 150) {
+      throw new Error('Invalid date of birth: age exceeds reasonable limit');
+    }
+
+    let age = yearDiff;
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    // Return 0 if age is negative (shouldn't happen with above checks, but just in case)
+    return Math.max(0, age);
+  } catch (error) {
+    console.error('Error calculating age:', error);
+    // Return 0 or throw based on your error handling strategy
+    // For user-facing code, returning 0 is safer
+    return 0;
   }
-  
-  return age;
 }
 
 export function clearAllFaces(): void {

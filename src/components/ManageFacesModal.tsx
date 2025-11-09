@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Modal, Button, ListGroup, Badge, Alert } from 'react-bootstrap';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, Badge, Button, ListGroup, Modal } from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import { getKnownFaces, deleteFaceByIndex, clearAllFaces, invalidateCache, type KnownFace } from '../features/faces/Recognition';
+import { clearAllFaces, deleteFaceByIndex, getKnownFaces, invalidateCache, type KnownFace } from '../features/faces/Recognition';
 import AddUserModal from './AddUserModal';
 import EditUserModal from './EditUserModal';
 
@@ -16,6 +16,8 @@ export default function ManageFacesModal({ show, onHide, onFacesChanged }: Props
   const [showAddUser, setShowAddUser] = useState(false);
   const [showEditUser, setShowEditUser] = useState(false);
   const [editingFace, setEditingFace] = useState<{ face: KnownFace; index: number } | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{ type: 'delete' | 'clearAll'; data?: any } | null>(null);
 
   useEffect(() => {
     if (show) {
@@ -24,33 +26,52 @@ export default function ManageFacesModal({ show, onHide, onFacesChanged }: Props
   }, [show]);
 
   const handleDelete = useCallback((indexToDelete: number) => {
-    if (confirm('Are you sure you want to delete this registered face?')) {
-      try {
-        deleteFaceByIndex(indexToDelete);
-        // Refresh the list after deletion
-        setFaces(getKnownFaces());
-        // Notify parent to refresh detections
-        onFacesChanged?.();
-      } catch (error) {
-        console.error('Failed to delete face:', error);
-        toast.error('Failed to delete face. Please try again.');
-      }
+    setConfirmAction({ type: 'delete', data: indexToDelete });
+    setShowConfirm(true);
+  }, []);
+
+  const confirmDelete = useCallback((indexToDelete: number) => {
+    try {
+      const faceName = faces[indexToDelete]?.name;
+      deleteFaceByIndex(indexToDelete);
+      // Refresh the list after deletion
+      setFaces(getKnownFaces());
+      // Notify parent to refresh detections
+      onFacesChanged?.();
+      toast.success(`User "${faceName}" deleted successfully!`);
+    } catch (error) {
+      console.error('Failed to delete face:', error);
+      toast.error('Failed to delete face. Please try again.');
+    }
+  }, [faces, onFacesChanged]);
+
+  const handleClearAll = useCallback(() => {
+    setConfirmAction({ type: 'clearAll' });
+    setShowConfirm(true);
+  }, []);
+
+  const confirmClearAll = useCallback(() => {
+    try {
+      clearAllFaces();
+      setFaces([]);
+      // Notify parent to refresh detections
+      onFacesChanged?.();
+      toast.success('All users cleared successfully!');
+    } catch (error) {
+      console.error('Failed to clear faces:', error);
+      toast.error('Failed to clear faces. Please try again.');
     }
   }, [onFacesChanged]);
 
-  const handleClearAll = useCallback(() => {
-    if (confirm('Are you sure you want to delete ALL registered faces? This cannot be undone.')) {
-      try {
-        clearAllFaces();
-        setFaces([]);
-        // Notify parent to refresh detections
-        onFacesChanged?.();
-      } catch (error) {
-        console.error('Failed to clear faces:', error);
-        toast.error('Failed to clear faces. Please try again.');
-      }
+  const handleConfirm = useCallback(() => {
+    if (confirmAction?.type === 'delete') {
+      confirmDelete(confirmAction.data);
+    } else if (confirmAction?.type === 'clearAll') {
+      confirmClearAll();
     }
-  }, [onFacesChanged]);
+    setShowConfirm(false);
+    setConfirmAction(null);
+  }, [confirmAction, confirmDelete, confirmClearAll]);
 
   const handleUserAdded = useCallback(() => {
     // Refresh the face list
@@ -138,7 +159,7 @@ export default function ManageFacesModal({ show, onHide, onFacesChanged }: Props
               color: 'var(--text-primary)'
             }}
           >
-            No faces registered yet. Start the webcam and click "Register Face" when you detect someone.
+            No Users registered yet. Add some Users.
           </Alert>
         ) : (
           <>
@@ -199,6 +220,55 @@ export default function ManageFacesModal({ show, onHide, onFacesChanged }: Props
           </>
         )}
       </Modal.Body>
+    </Modal>
+
+    {/* Confirmation Modal */}
+    <Modal
+      show={showConfirm}
+      onHide={() => {
+        setShowConfirm(false);
+        setConfirmAction(null);
+      }}
+      centered
+      contentClassName="border-0"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
+    >
+      <Modal.Header
+        closeButton
+        style={{
+          backgroundColor: 'var(--bg-card)',
+          borderBottom: '1px solid var(--border-color)',
+          color: 'var(--text-primary)'
+        }}
+      >
+        <Modal.Title>Confirm Action</Modal.Title>
+      </Modal.Header>
+      <Modal.Body style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)' }}>
+        <p>
+          {confirmAction?.type === 'delete'
+            ? 'Are you sure you want to delete this registered face?'
+            : 'Are you sure you want to delete ALL registered faces? This cannot be undone.'}
+        </p>
+      </Modal.Body>
+      <Modal.Footer style={{ backgroundColor: 'var(--bg-card)', borderTop: '1px solid var(--border-color)' }}>
+        <Button
+          variant="secondary"
+          onClick={() => {
+            setShowConfirm(false);
+            setConfirmAction(null);
+          }}
+          style={{
+            backgroundColor: 'var(--bg-secondary)',
+            borderColor: 'var(--border-color)',
+            color: 'var(--text-primary)'
+          }}
+        >
+          Cancel
+        </Button>
+        <Button variant="danger" onClick={handleConfirm}>
+          {confirmAction?.type === 'clearAll' ? 'Clear All' : 'Delete'}
+        </Button>
+      </Modal.Footer>
     </Modal>
     </>
   );

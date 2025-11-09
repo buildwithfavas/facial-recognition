@@ -53,10 +53,26 @@ export default function FaceOverlay({ videoRef, detections, showExpressions = tr
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    
+    let ctx: CanvasRenderingContext2D | null = null;
+    try {
+      ctx = canvas.getContext('2d');
+    } catch (error) {
+      console.error('Failed to get canvas context:', error);
+      return;
+    }
+    
     if (!ctx) return;
+    
     const { w, h, vw, vh } = size;
-    ctx.clearRect(0, 0, w, h);
+    
+    try {
+      ctx.clearRect(0, 0, w, h);
+    } catch (error) {
+      console.error('Failed to clear canvas:', error);
+      return;
+    }
+    
     if (w === 0 || h === 0 || vw === 0 || vh === 0) return;
 
     // object-fit: contain mapping
@@ -66,11 +82,17 @@ export default function FaceOverlay({ videoRef, detections, showExpressions = tr
     const offsetX = (w - displayW) / 2;
     const offsetY = (h - displayH) / 2;
 
-    ctx.lineWidth = 2;
-    ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Arial';
-    ctx.textBaseline = 'top';
+    try {
+      ctx.lineWidth = 2;
+      ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+      ctx.textBaseline = 'top';
+    } catch (error) {
+      console.error('Failed to set canvas properties:', error);
+      return;
+    }
 
     detections.forEach((d) => {
+      try {
       let x = Math.round(d.box.x * s + offsetX);
       const y = Math.round(d.box.y * s + offsetY);
       const bw = Math.round(d.box.width * s);
@@ -88,32 +110,36 @@ export default function FaceOverlay({ videoRef, detections, showExpressions = tr
       const topEmotion = topExpr?.[0];
       const emotionColor = getEmotionColor(topEmotion);
       
-      // Emotion-based color for border
-      ctx.strokeStyle = emotionColor;
-      ctx.lineWidth = 3;
-      ctx.strokeRect(x, y, bw, bh);
+        // Emotion-based color for border
+        ctx.strokeStyle = emotionColor;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, y, bw, bh);
 
-      const exprText = topExpr ? `${topExpr[0]} ${(topExpr[1] * 100).toFixed(0)}%` : undefined;
-      const labelParts: string[] = [];
-      // Always show name first (or "Unknown" if not registered)
-      labelParts.push(d.name || 'Unknown');
-      if (typeof d.age === 'number') labelParts.push(`age ${d.age}`);
-      if (d.gender) labelParts.push(d.gender);
-      if (exprText) labelParts.push(exprText);
-      const label = labelParts.join(' · ');
+        const exprText = topExpr ? `${topExpr[0]} ${(topExpr[1] * 100).toFixed(0)}%` : undefined;
+        const labelParts: string[] = [];
+        // Always show name first (or "Unknown" if not registered)
+        labelParts.push(d.name || 'Unknown');
+        if (typeof d.age === 'number') labelParts.push(`age ${d.age}`);
+        if (d.gender) labelParts.push(d.gender);
+        if (exprText) labelParts.push(exprText);
+        const label = labelParts.join(' · ');
 
-      if (label) {
-        const padding = 6;
-        const metrics = ctx.measureText(label);
-        const textW = Math.ceil(metrics.width) + padding * 2;
-        const textH = 16 + padding * 2;
-        const bx = x;
-        const by = Math.max(0, y - textH - 4);
-        // Emotion-based color for label background
-        ctx.fillStyle = emotionColor;
-        ctx.fillRect(bx, by, textW, textH);
-        ctx.fillStyle = '#fff';
-        ctx.fillText(label, bx + padding, by + padding);
+        if (label) {
+          const padding = 6;
+          const metrics = ctx.measureText(label);
+          const textW = Math.ceil(metrics.width) + padding * 2;
+          const textH = 16 + padding * 2;
+          const bx = x;
+          const by = Math.max(0, y - textH - 4);
+          // Emotion-based color for label background
+          ctx.fillStyle = emotionColor;
+          ctx.fillRect(bx, by, textW, textH);
+          ctx.fillStyle = '#fff';
+          ctx.fillText(label, bx + padding, by + padding);
+        }
+      } catch (error) {
+        console.error('Error drawing face overlay:', error);
+        // Continue to next face even if one fails
       }
     });
   }, [detections, size, showExpressions, mirrored]);
