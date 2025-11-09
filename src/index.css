@@ -5,6 +5,36 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* Dark theme colors */
+  --bg-primary: #0a0f1e;
+  --bg-secondary: #1a2332;
+  --bg-card: #141b2b;
+  --border-color: #2a3444;
+  --text-primary: #e5e7eb;
+  --text-secondary: #9ca3af;
+  --accent-blue: #3b82f6;
+  --accent-blue-hover: #2563eb;
+}
+
+/* Global layout resets */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+#root {
+  display: block;
+  width: 100%;
+  min-width: 320px;
+  min-height: 100vh;
 }
 
 /* Camera/Overlay responsive utilities */
@@ -25,8 +55,7 @@
   pointer-events: none;
 }
 
-/* Optional transform-based scaling using CSS variables
-   Set --overlay-scale-x and --overlay-scale-y in inline styles to map video pixels to CSS pixels. */
+/* Optional transform-based scaling using CSS variables */
 .overlay-transform {
   transform-origin: 0 0;
   transform: scale(var(--overlay-scale-x, 1), var(--overlay-scale-y, 1));
@@ -38,19 +67,52 @@
   image-rendering: -webkit-optimize-contrast;
 }
 
-/* Global layout resets to let Bootstrap control spacing and colors */
-html, body, #root {
-  height: 100%;
+/* Dark theme overrides for Bootstrap */
+.navbar {
+  background-color: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border-color);
 }
 
-body {
-  margin: 0;
-  background-color: #fff;
-  color: #212529; /* Bootstrap body color */
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
 }
 
-#root {
-  display: block;
-  width: 100%;
-  min-width: 320px;
+.card-header {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.btn-primary {
+  background-color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-blue-hover);
+  border-color: var(--accent-blue-hover);
+}
+
+.btn-outline-primary {
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.text-muted {
+  color: var(--text-secondary) !important;
+}
+
+.bg-light {
+  background-color: var(--bg-secondary) !important;
+}
+
+.border {
+  border-color: var(--border-color) !important;
 }

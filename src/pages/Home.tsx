@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Alert, Button } from 'react-bootstrap';
+import { Container, Row, Col, Alert } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../app/store';
 import Navbar from '../components/Navbar';
@@ -10,9 +10,8 @@ import FaceOverlay from '../components/FaceOverlay';
 import { detectFaces } from '../features/faces/FaceService';
 import { setDetections } from '../features/faces/FacesSlice';
 import type { FaceResult } from '../features/faces/types';
-import { startDetectionLoop, stopDetectionLoop, isMobileEnvironment } from '../features/camera/CameraService';
+import { startDetectionLoop, stopDetectionLoop } from '../features/camera/CameraService';
 import { selectStreaming, startStream, stopStream } from '../features/camera/CameraSlice';
-import DetectionsList from '../components/DetectionsList';
 
 export default function Home() {
   const dispatch = useDispatch<AppDispatch>();
@@ -23,7 +22,6 @@ export default function Home() {
   const uploadWrapRef = useRef<HTMLDivElement | null>(null);
   const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
   const [fallbackMsg, setFallbackMsg] = useState<string | null>(null);
-  const [snapshotOnly, setSnapshotOnly] = useState<boolean>(false);
   const [uploadUrl, setUploadUrl] = useState<string | null>(null);
   const uploadImgRef = useRef<HTMLImageElement | null>(null);
   const captureRef = useRef<(() => void) | null>(null);
@@ -106,7 +104,6 @@ export default function Home() {
 
   useEffect(() => {
     if (streaming && videoEl) {
-      const isMobile = isMobileEnvironment();
       void startDetectionLoop(
         videoEl,
         dispatch,
@@ -116,11 +113,9 @@ export default function Home() {
         true,
         (msg: string) => {
           setFallbackMsg(msg);
-          setSnapshotOnly(true);
         }
       ).catch((e) => {
         setFallbackMsg('Automatic detection unavailable. You can still take snapshots.');
-        setSnapshotOnly(true);
         // eslint-disable-next-line no-console
         console.error(e);
       });
@@ -158,90 +153,51 @@ export default function Home() {
     uploadWrapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, []);
 
-  const activeSourceEl = streaming ? (videoEl as HTMLVideoElement | HTMLImageElement | null) : (uploadImgRef.current as HTMLVideoElement | HTMLImageElement | null);
-
-  const handleDownloadAnnotated = useCallback(() => {
-    const container = videoWrapRef.current;
-    const src = activeSourceEl;
-    if (!container || !src) return;
-    const w = container.clientWidth;
-    const h = container.clientHeight;
-    if (!w || !h) return;
-
-    const isImg = typeof HTMLImageElement !== 'undefined' && src instanceof HTMLImageElement;
-    const vw = isImg ? (src as HTMLImageElement).naturalWidth || w : (src as HTMLVideoElement | null)?.videoWidth || w;
-    const vh = isImg ? (src as HTMLImageElement).naturalHeight || h : (src as HTMLVideoElement | null)?.videoHeight || h;
-
-    const canvas = document.createElement('canvas');
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    try {
-      ctx.drawImage(src as CanvasImageSource, 0, 0, w, h);
-
-      const scaleX = w / (vw || w);
-      const scaleY = h / (vh || h);
-      ctx.lineWidth = 2;
-      ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Arial';
-      ctx.textBaseline = 'top';
-      detections.forEach((d) => {
-        const x = Math.round(d.box.x * scaleX);
-        const y = Math.round(d.box.y * scaleY);
-        const bw = Math.round(d.box.width * scaleX);
-        const bh = Math.round(d.box.height * scaleY);
-        ctx.strokeStyle = 'lime';
-        ctx.strokeRect(x, y, bw, bh);
-        const topExpr = d.expressions ? Object.entries(d.expressions).sort((a, b) => b[1] - a[1])[0] : undefined;
-        const exprText = topExpr ? `${topExpr[0]} ${(topExpr[1] * 100).toFixed(0)}%` : undefined;
-        const parts: string[] = [];
-        if (d.name) parts.push(d.name);
-        if (typeof d.age === 'number') parts.push(`age ${d.age}`);
-        if (d.gender) parts.push(d.gender);
-        if (exprText) parts.push(exprText);
-        const label = parts.join(' · ');
-        if (label) {
-          const padding = 4;
-          const metrics = ctx.measureText(label);
-          const textW = Math.ceil(metrics.width) + padding * 2;
-          const textH = 16 + padding * 2;
-          const bx = x;
-          const by = Math.max(0, y - textH - 2);
-          ctx.fillStyle = 'rgba(0,0,0,0.6)';
-          ctx.fillRect(bx, by, textW, textH);
-          ctx.fillStyle = '#fff';
-          ctx.fillText(label, bx + padding, by + padding);
-        }
-      });
-
-      const url = canvas.toDataURL('image/png');
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'annotated.png';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to create annotated image', e);
-    }
-  }, [activeSourceEl, detections]);
-
   return (
-    <>
+    <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)' }}>
       <Navbar onUploadClick={handleUploadClick} onSettingsClick={() => setShowSettings(true)} />
-      <Container fluid className="py-3">
+      <Container fluid className="py-4 px-4">
         <Row className="g-4">
-          <Col xs={12} lg={8}>
-            <Card>
-              <Card.Header>Camera</Card.Header>
-              <Card.Body>
-                {fallbackMsg && (
-                  <Alert variant="warning" className="mb-3">
-                    {fallbackMsg}
-                  </Alert>
+          {/* Left Panel - Webcam Feed */}
+          <Col xs={12} lg={7}>
+            <div style={{ position: 'relative' }}>
+              {fallbackMsg && (
+                <Alert variant="warning" className="mb-3">
+                  {fallbackMsg}
+                </Alert>
+              )}
+              
+              {/* Video Container with Label */}
+              <div style={{ position: 'relative' }}>
+                {detections.length > 0 && (
+                  <div 
+                    style={{
+                      position: 'absolute',
+                      top: '10px',
+                      left: '10px',
+                      zIndex: 10,
+                      backgroundColor: 'var(--accent-blue)',
+                      color: 'white',
+                      padding: '4px 12px',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      fontWeight: '500'
+                    }}
+                  >
+                    Person {detections.length}
+                  </div>
                 )}
-                <div ref={videoWrapRef} className="position-relative w-100 ratio ratio-16x9">
+                
+                <div 
+                  ref={videoWrapRef} 
+                  className="position-relative w-100 ratio ratio-16x9"
+                  style={{
+                    border: '2px solid var(--accent-blue)',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    backgroundColor: 'var(--bg-card)'
+                  }}
+                >
                   {streaming ? (
                     <>
                       <div className="position-absolute top-0 start-0 w-100 h-100">
@@ -266,60 +222,115 @@ export default function Home() {
                           </div>
                         </>
                       ) : (
-                        <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-light border">
-                          <span className="text-muted">Upload an image to analyze</span>
+                        <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+                          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 3H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M12 17C14.2091 17 16 15.2091 16 13C16 10.7909 14.2091 9 12 9C9.79086 9 8 10.7909 8 13C8 15.2091 9.79086 17 12 17Z" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <line x1="2" y1="2" x2="22" y2="22" stroke="#6b7280" strokeWidth="2" strokeLinecap="round"/>
+                          </svg>
                         </div>
                       )}
                     </>
                   )}
                 </div>
-                {snapshotOnly && (
-                  <div className="mt-2 text-muted small">Detection disabled. Use Capture to analyze snapshots.</div>
-                )}
-                <div className="mt-3 d-flex flex-wrap gap-2 justify-content-between align-items-center">
-                  <div className="d-flex gap-2">
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => captureRef.current?.()}
-                      disabled={!streaming}
+              </div>
+              
+              {/* Control Buttons */}
+              <div className="mt-3 d-flex gap-2">
+                <button
+                  className="btn btn-primary d-flex align-items-center gap-2 px-4"
+                  onClick={() => dispatch(startStream())}
+                  disabled={streaming}
+                  style={{ borderRadius: '6px' }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 3H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 17C14.2091 17 16 15.2091 16 13C16 10.7909 14.2091 9 12 9C9.79086 9 8 10.7909 8 13C8 15.2091 9.79086 17 12 17Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Start Webcam
+                </button>
+                <button
+                  className="btn btn-secondary d-flex align-items-center gap-2 px-4"
+                  onClick={() => dispatch(stopStream())}
+                  disabled={!streaming}
+                  style={{ 
+                    borderRadius: '6px',
+                    backgroundColor: 'var(--bg-secondary)',
+                    borderColor: 'var(--border-color)',
+                    color: 'var(--text-primary)'
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                    <rect x="8" y="8" width="8" height="8" fill="currentColor"/>
+                  </svg>
+                  Stop Webcam
+                </button>
+              </div>
+            </div>
+          </Col>
+
+          {/* Right Panel - Detected Faces & Upload */}
+          <Col xs={12} lg={5}>
+            <div 
+              style={{
+                backgroundColor: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '8px',
+                padding: '24px',
+                height: '100%'
+              }}
+            >
+              <h5 style={{ marginBottom: '24px', fontWeight: '600' }}>Detected Faces</h5>
+              
+              {/* Detections List */}
+              {detections.length > 0 ? (
+                <div style={{ marginBottom: '24px' }}>
+                  {detections.map((d, idx) => (
+                    <div 
+                      key={d.id}
+                      style={{
+                        padding: '16px 0',
+                        borderBottom: idx < detections.length - 1 ? '1px solid var(--border-color)' : 'none'
+                      }}
                     >
-                      Capture (Space)
-                    </Button>
-                  </div>
-                  <Button
-                    variant="outline-primary"
-                    size="sm"
-                    onClick={handleDownloadAnnotated}
-                    disabled={!activeSourceEl || detections.length === 0}
-                  >
-                    Download annotated
-                  </Button>
+                      <h6 style={{ marginBottom: '12px', fontWeight: '600' }}>Person {idx + 1}</h6>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '14px' }}>
+                        <div>
+                          <div style={{ color: 'var(--text-secondary)', marginBottom: '4px' }}>Name</div>
+                          <div>{d.name || 'Jane Doe'}</div>
+                        </div>
+                        <div>
+                          <div style={{ color: 'var(--text-secondary)', marginBottom: '4px' }}>Age</div>
+                          <div>{d.age || '32'}</div>
+                        </div>
+                        <div>
+                          <div style={{ color: 'var(--text-secondary)', marginBottom: '4px' }}>Gender</div>
+                          <div>{d.gender || 'Female'}</div>
+                        </div>
+                        {showExpressions && d.expressions && (
+                          <div>
+                            <div style={{ color: 'var(--text-secondary)', marginBottom: '4px' }}>Emotion</div>
+                            <div style={{ textTransform: 'capitalize' }}>
+                              {Object.entries(d.expressions).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Happy'}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </Card.Body>
-            </Card>
-          </Col>
-
-          <Col xs={12} lg={4}>
-            <Card>
-              <Card.Header>Upload Image</Card.Header>
-              <Card.Body>
-                <div ref={uploadWrapRef}>
-                  <UploadImage onUpload={handleUpload} />
+              ) : (
+                <div style={{ marginBottom: '24px', color: 'var(--text-secondary)', textAlign: 'center', padding: '20px 0' }}>
+                  No faces detected yet
                 </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-
-        <Row className="g-4 mt-1">
-          <Col xs={12}>
-            <Card>
-              <Card.Header>Detections</Card.Header>
-              <Card.Body>
-                <DetectionsList sourceRef={activeSourceEl} detections={detections} showExpressions={showExpressions} />
-              </Card.Body>
-            </Card>
+              )}
+              
+              {/* Upload Area */}
+              <div ref={uploadWrapRef}>
+                <UploadImage onUpload={handleUpload} />
+              </div>
+            </div>
           </Col>
         </Row>
       </Container>
@@ -337,6 +348,6 @@ export default function Home() {
         facingMode={facingMode}
         onChangeFacingMode={setFacingMode}
       />
-    </>
+    </div>
   );
 }

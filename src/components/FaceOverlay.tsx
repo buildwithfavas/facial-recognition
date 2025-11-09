@@ -63,7 +63,9 @@ export default function FaceOverlay({ videoRef, detections, showExpressions = tr
         x = Math.round(w - (x + bw));
       }
 
-      ctx.strokeStyle = 'lime';
+      // Blue border for detected face
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 3;
       ctx.strokeRect(x, y, bw, bh);
 
       const topExpr = showExpressions && d.expressions
@@ -78,13 +80,14 @@ export default function FaceOverlay({ videoRef, detections, showExpressions = tr
       const label = labelParts.join(' · ');
 
       if (label) {
-        const padding = 4;
+        const padding = 6;
         const metrics = ctx.measureText(label);
         const textW = Math.ceil(metrics.width) + padding * 2;
         const textH = 16 + padding * 2;
         const bx = x;
-        const by = Math.max(0, y - textH - 2);
-        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        const by = Math.max(0, y - textH - 4);
+        // Blue background for label
+        ctx.fillStyle = '#3b82f6';
         ctx.fillRect(bx, by, textW, textH);
         ctx.fillStyle = '#fff';
         ctx.fillText(label, bx + padding, by + padding);
