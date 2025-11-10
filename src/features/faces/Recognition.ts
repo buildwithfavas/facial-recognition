@@ -1,18 +1,32 @@
-export type KnownFace = {
+/**
+ * Represents a known face stored in the recognition system
+ */
+export interface KnownFace {
+  /** Full name of the person */
   name: string;
+  /** Face descriptor vector (128-dimensional) */
   descriptor: number[];
-  dob?: string; // Date of birth in YYYY-MM-DD format
-  gender?: string; // Gender of the person
-};
-
-export type MatchResult = {
-  name: string;
-  distance: number;
+  /** Date of birth in YYYY-MM-DD format */
   dob?: string;
+  /** Gender of the person */
   gender?: string;
-};
+}
 
-const STORAGE_KEY = 'knownFaces';
+/**
+ * Result of matching a face descriptor against known faces
+ */
+export interface MatchResult {
+  /** Name of the matched person or 'unknown' */
+  name: string;
+  /** Euclidean distance between descriptors (lower = better match) */
+  distance: number;
+  /** Date of birth if available */
+  dob?: string;
+  /** Gender if available */
+  gender?: string;
+}
+
+const STORAGE_KEY = 'face_recognition_known_faces';
 
 let cache: KnownFace[] | null = null;
 
@@ -68,10 +82,21 @@ function saveKnownFaces(items: KnownFace[]): void {
   }
 }
 
+/**
+ * Retrieves all known faces from storage
+ * @returns Array of known faces (copy to prevent external mutation)
+ */
 export function getKnownFaces(): KnownFace[] {
-  return loadKnownFaces();
+  return [...loadKnownFaces()];
 }
 
+/**
+ * Adds a new face to the known faces database
+ * @param name - Full name of the person
+ * @param descriptor - Face descriptor vector (128-dimensional)
+ * @param dob - Optional date of birth in YYYY-MM-DD format
+ * @param gender - Optional gender
+ */
 export function addKnownFace(name: string, descriptor: Float32Array | number[], dob?: string, gender?: string): void {
   const list = loadKnownFaces();
   const item: KnownFace = { name, descriptor: toArray(descriptor), dob, gender };
@@ -79,6 +104,10 @@ export function addKnownFace(name: string, descriptor: Float32Array | number[], 
   saveKnownFaces(list);
 }
 
+/**
+ * Deletes a known face by its index
+ * @param index - Zero-based index of the face to delete
+ */
 export function deleteFaceByIndex(index: number): void {
   const list = loadKnownFaces();
   if (index >= 0 && index < list.length) {
@@ -87,6 +116,13 @@ export function deleteFaceByIndex(index: number): void {
   }
 }
 
+/**
+ * Updates a known face's information by index
+ * @param index - Zero-based index of the face to update
+ * @param name - New name
+ * @param dob - New date of birth (optional)
+ * @param gender - New gender (optional)
+ */
 export function updateFaceByIndex(index: number, name: string, dob?: string, gender?: string): void {
   const list = loadKnownFaces();
   if (index >= 0 && index < list.length) {
@@ -158,6 +194,7 @@ export function matchDescriptor(
   descriptor: Float32Array | number[],
   threshold = 0.45
 ): MatchResult {
+  if (!descriptor) return { name: 'unknown', distance: Number.POSITIVE_INFINITY };
   const probe = toArray(descriptor);
   const list = loadKnownFaces();
   if (list.length === 0) return { name: 'unknown', distance: Number.POSITIVE_INFINITY };

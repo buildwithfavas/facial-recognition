@@ -1,11 +1,11 @@
 import { useCallback, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import { toast } from 'react-toastify';
 
-type Props = {
+interface UploadImageProps {
   onUpload: (dataUrl: string) => void;
-};
+}
 
-export default function UploadImage({ onUpload }: Props) {
+export default function UploadImage({ onUpload }: UploadImageProps) {
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 

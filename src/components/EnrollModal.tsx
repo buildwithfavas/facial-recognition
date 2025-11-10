@@ -37,7 +37,6 @@ export default function EnrollModal({ show, onHide, descriptor, thumbnailDataUrl
     } catch (e) {
       setSaving(false);
       setToast({ show: true, message: 'Failed to enroll. Please try again.' });
-      // eslint-disable-next-line no-console
       console.error(e);
     }
   };

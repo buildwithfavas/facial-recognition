@@ -5,19 +5,23 @@ import { clearAllFaces, deleteFaceByIndex, getKnownFaces, invalidateCache, type 
 import AddUserModal from './AddUserModal';
 import EditUserModal from './EditUserModal';
 
-type Props = {
+interface ManageFacesModalProps {
   show: boolean;
   onHide: () => void;
   onFacesChanged?: () => void;
-};
+}
 
-export default function ManageFacesModal({ show, onHide, onFacesChanged }: Props) {
+type ConfirmAction = 
+  | { type: 'delete'; data: number }
+  | { type: 'clearAll' };
+
+export default function ManageFacesModal({ show, onHide, onFacesChanged }: ManageFacesModalProps) {
   const [faces, setFaces] = useState<KnownFace[]>([]);
   const [showAddUser, setShowAddUser] = useState(false);
   const [showEditUser, setShowEditUser] = useState(false);
   const [editingFace, setEditingFace] = useState<{ face: KnownFace; index: number } | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<{ type: 'delete' | 'clearAll'; data?: any } | null>(null);
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
 
   useEffect(() => {
     if (show) {

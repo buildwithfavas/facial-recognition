@@ -20,7 +20,7 @@ let detectionHandle: { stop: () => void } | null = null;
 export function isMobileEnvironment(): boolean {
   try {
     const ua = typeof navigator !== 'undefined' ? navigator.userAgent || navigator.vendor : '';
-    const isTouch = typeof window !== 'undefined' ? ('ontouchstart' in window || (navigator as any).maxTouchPoints > 0) : false;
+    const isTouch = typeof window !== 'undefined' ? ('ontouchstart' in window || (navigator as Navigator & { maxTouchPoints?: number }).maxTouchPoints > 0) : false;
     const smallScreen = typeof window !== 'undefined' ? Math.min(window.innerWidth, window.innerHeight) < 768 : false;
     return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(ua) || isTouch || smallScreen;
   } catch {
@@ -46,7 +46,7 @@ export async function startDetectionLoop(
     dispatch(setIsDetecting(true));
     let effectiveInterval = Math.min(Math.max(intervalMs, 150), 400);
     try {
-      const tf = (faceapi as any)?.tf;
+      const tf = (faceapi as unknown as { tf?: { engine?: () => { backendName?: string }; getBackend?: () => string } })?.tf;
       const backend: string | undefined =
         typeof tf?.engine === 'function' ? tf.engine()?.backendName : typeof tf?.getBackend === 'function' ? tf.getBackend() : undefined;
       const isCpu = backend === 'cpu' || !backend;
@@ -55,7 +55,9 @@ export async function startDetectionLoop(
         if (onFallback)
           onFallback('Running on a slow backend (CPU or unknown). Reducing detection frequency; you can switch to snapshot-only mode.');
       }
-    } catch {}
+    } catch {
+      // Backend detection failed, continue with default interval
+    }
     if (mobileAdaptive && isMobileEnvironment()) {
       effectiveInterval = Math.max(effectiveInterval, 350);
     }

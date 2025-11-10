@@ -5,15 +5,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch } from '../app/store';
 import { selectDeviceId, selectStreaming, startStream, stopStream } from '../features/camera/CameraSlice';
 
-type Props = {
+interface WebcamFeedProps {
   onCapture: (imageDataUrl: string) => void;
   mirrored?: boolean;
   captureRef?: React.MutableRefObject<(() => void) | null>;
   facingMode?: 'user' | 'environment';
   embed?: boolean; // when true, render bare video that fills parent (no Card padding)
-};
+}
 
-export default function WebcamFeed({ onCapture, mirrored = false, captureRef, facingMode = 'user', embed = false }: Props) {
+export default function WebcamFeed({ onCapture, mirrored = false, captureRef, facingMode = 'user', embed = false }: WebcamFeedProps) {
   const dispatch = useDispatch<AppDispatch>();
   const streaming = useSelector(selectStreaming);
   const deviceId = useSelector(selectDeviceId);

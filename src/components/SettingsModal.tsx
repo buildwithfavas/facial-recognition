@@ -61,7 +61,9 @@ export default function SettingsModal(props: SettingsModalProps) {
         localStorage.setItem(KEY_CONF, JSON.stringify(localConf));
         localStorage.setItem(KEY_FACING, JSON.stringify(localFacing));
       }
-    } catch {}
+    } catch {
+      // localStorage may not be available in some environments
+    }
     onChangeShowExpressions(localExpr);
     onChangeInterval(Math.max(100, Math.min(2000, Math.round(localInt))));
     onChangeUseTiny(localTiny);

@@ -4,14 +4,14 @@ import { toast } from 'react-toastify';
 import type { FaceResult } from '../features/faces/types';
 import { addKnownFace } from '../features/faces/Recognition';
 
-type Props = {
+interface RegisterFaceModalProps {
   show: boolean;
   onHide: () => void;
   faceToRegister: FaceResult | null;
   onRegistered?: () => void;
-};
+}
 
-export default function RegisterFaceModal({ show, onHide, faceToRegister, onRegistered }: Props) {
+export default function RegisterFaceModal({ show, onHide, faceToRegister, onRegistered }: RegisterFaceModalProps) {
   const [name, setName] = useState('');
   const [dob, setDob] = useState('');
   const [gender, setGender] = useState('');

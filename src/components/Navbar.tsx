@@ -1,13 +1,13 @@
 import { Navbar as BsNavbar, Container } from 'react-bootstrap';
 
-type Props = {
+interface NavbarProps {
   onUploadClick?: () => void;
   title?: string;
   onSettingsClick?: () => void;
   onHelpClick?: () => void;
-};
+}
 
-export default function Navbar({ title = 'Facial Recognition' }: Props) {
+export default function Navbar({ title = 'Facial Recognition' }: NavbarProps) {
   return (
     <BsNavbar className="py-3" style={{ backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)' }}>
       <Container fluid className="px-5 px-md-4">

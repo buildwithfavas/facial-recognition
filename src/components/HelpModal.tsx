@@ -1,11 +1,11 @@
 import { Modal, Button, Accordion } from 'react-bootstrap';
 
-type Props = {
+interface HelpModalProps {
   show: boolean;
   onHide: () => void;
-};
+}
 
-export default function HelpModal({ show, onHide }: Props) {
+export default function HelpModal({ show, onHide }: HelpModalProps) {
   return (
     <Modal 
       show={show} 

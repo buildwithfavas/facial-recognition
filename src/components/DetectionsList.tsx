@@ -9,8 +9,6 @@ export type DetectionsListProps = {
   showExpressions?: boolean;
 };
 
-type Thumb = { id: string; url: string };
-
 function getIntrinsicSize(el: HTMLVideoElement | HTMLImageElement | HTMLCanvasElement | null):
   | { w: number; h: number }
   | null {

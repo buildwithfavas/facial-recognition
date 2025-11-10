@@ -3,15 +3,15 @@ import { Modal, Button, Form } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { updateFaceByIndex, type KnownFace } from '../features/faces/Recognition';
 
-type Props = {
+interface EditUserModalProps {
   show: boolean;
   onHide: () => void;
   face: KnownFace | null;
   faceIndex: number;
   onUserUpdated?: () => void;
-};
+}
 
-export default function EditUserModal({ show, onHide, face, faceIndex, onUserUpdated }: Props) {
+export default function EditUserModal({ show, onHide, face, faceIndex, onUserUpdated }: EditUserModalProps) {
   const [name, setName] = useState('');
   const [dob, setDob] = useState('');
   const [gender, setGender] = useState('');

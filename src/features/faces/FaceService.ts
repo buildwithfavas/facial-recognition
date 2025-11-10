@@ -20,9 +20,17 @@ function ensureModelsLoaded(): void {
   }
 }
 
-function toFaceResults(items: Array<any>): FaceResult[] {
-  return items.map((it: any, idx: number) => {
-    const rawDesc: Float32Array | number[] | undefined = it.descriptor as any;
+type FaceApiDetection = {
+  detection: { box: { x: number; y: number; width: number; height: number }; score?: number };
+  descriptor?: Float32Array | number[];
+  age?: number;
+  gender?: string;
+  expressions?: Record<string, number> | { [key: string]: number };
+};
+
+function toFaceResults(items: unknown[]): FaceResult[] {
+  return (items as FaceApiDetection[]).map((it, idx: number) => {
+    const rawDesc: Float32Array | number[] | undefined = it.descriptor;
     const match = rawDesc ? matchDescriptor(rawDesc) : { name: 'unknown', distance: Number.POSITIVE_INFINITY };
     return {
       id: `${Date.now()}-${idx}`,
@@ -34,7 +42,7 @@ function toFaceResults(items: Array<any>): FaceResult[] {
       },
       score: typeof it.detection?.score === 'number' ? it.detection.score : undefined,
       age: typeof it.age === 'number' ? Math.round(it.age) : undefined,
-      gender: match.gender || (it.gender as any),
+      gender: match.gender || (typeof it.gender === 'string' ? it.gender : undefined),
       expressions: it.expressions as Record<string, number> | undefined,
       name: match.name !== 'unknown' ? match.name : undefined,
       dob: match.dob,
@@ -65,13 +73,16 @@ async function detectAll(
     : new faceapi.SsdMobilenetv1Options({ minConfidence });
 
   const results = await faceapi
-    .detectAllFaces(input as any, detector)
+    .detectAllFaces(
+      input as HTMLVideoElement | HTMLImageElement | HTMLCanvasElement,
+      detector
+    )
     .withFaceLandmarks()
     .withFaceExpressions()
     .withAgeAndGender()
     .withFaceDescriptors();
 
-  return toFaceResults(results as any);
+  return toFaceResults(results);
 }
 
 export async function detectFromImage(
@@ -96,7 +107,6 @@ export function detectFromVideoElement(
         opts?.onUpdate?.(res);
       }
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error('Video detection error:', err);
     } finally {
       if (!stopped) setTimeout(loop, interval);

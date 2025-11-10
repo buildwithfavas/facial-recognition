@@ -1,10 +1,11 @@
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ErrorBoundary from './components/ErrorBoundary';
 import Home from './pages/Home';
 
 function App() {
   return (
-    <>
+    <ErrorBoundary>
       <main role="main" aria-label="Facial Recognition Application">
         <Home />
       </main>
@@ -20,7 +21,7 @@ function App() {
         pauseOnHover
         theme="dark"
       />
-    </>
+    </ErrorBoundary>
   );
 }
 

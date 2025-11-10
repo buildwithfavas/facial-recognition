@@ -1,6 +1,11 @@
-# Facial Recognition Web Application
+# 🎭 Facial Recognition Web Application
 
-> A real-time facial recognition system built with React, TypeScript, and TensorFlow.js that runs entirely in your browser.
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![React](https://img.shields.io/badge/React-19-blue.svg)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue.svg)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-6.0-purple.svg)](https://vitejs.dev/)
+
+> A real-time facial recognition system built with React, TypeScript, and TensorFlow.js that runs entirely in your browser. Privacy-first with all processing happening locally - no data sent to servers!
 
 ## 🎯 Features
 
@@ -136,21 +141,105 @@ npm run preview     # Preview production build
 ```
 src/
 ├── app/              # Redux store configuration
-├── components/       # React components (Navbar, Overlay, etc.)
+├── components/       # React components (Navbar, Overlay, Modals, etc.)
+│   ├── ErrorBoundary.tsx      # Error handling boundary
+│   ├── FaceOverlay.tsx         # Face detection overlay (memoized)
+│   ├── WebcamFeed.tsx          # Webcam controls
+│   └── ...modals               # Various modal dialogs
+├── constants/        # Application-wide constants
+│   └── index.ts                # Centralized configuration
 ├── features/
 │   ├── camera/      # Camera state & services
+│   │   ├── CameraService.ts    # Camera control logic
+│   │   └── CameraSlice.ts      # Redux state management
 │   └── faces/       # Face detection & recognition
+│       ├── FaceService.ts      # Face detection engine
+│       ├── Recognition.ts      # Face matching & storage
+│       └── types.ts            # TypeScript interfaces
+├── hooks/            # Custom React hooks
+│   ├── useFaceDetection.ts    # Face detection hook
+│   └── useLocalStorage.ts     # localStorage hook
 ├── pages/           # Main application pages
-└── utils/           # Model loading utilities
+│   └── Home.tsx                # Main detection interface
+├── utils/           # Utility functions
+│   ├── validators.ts           # Input validation
+│   └── modelLoader.ts          # ML model loading
+└── __tests__/       # Test suites
 ```
+
+### Architecture Highlights
+
+- **Error Boundary**: Catches React errors gracefully
+- **Custom Hooks**: Reusable stateful logic
+- **Centralized Validation**: Consistent input validation
+- **TypeScript**: Full type safety throughout
+- **Performance Optimized**: React.memo, useCallback, useMemo
+- **Comprehensive Testing**: Unit tests with Vitest
 
 ## 🧪 Testing
 
 ### Running Tests
 ```bash
-npm run test        # Unit tests
+npm run test        # Run unit tests with Vitest
+npm run test:ui     # Run tests with UI
+npm run coverage    # Generate coverage report
 npm run lint        # Code quality checks
+npm run type-check  # TypeScript type checking
 ```
+
+### Test Coverage
+
+- **Recognition Module**: CRUD operations, age calculation, face matching
+- **Validators**: Image validation, user input validation
+- **Custom Hooks**: Face detection, localStorage management
+- **Target Coverage**: 80%+
+
+### Test Structure
+```
+src/
+├── features/faces/__tests__/
+│   └── Recognition.test.ts
+├── utils/__tests__/
+│   └── validators.test.ts
+└── hooks/__tests__/
+    ├── useFaceDetection.test.ts
+    └── useLocalStorage.test.ts
+```
+
+## 🎖️ Code Quality & Best Practices
+
+### Recent Improvements
+
+This codebase has undergone a comprehensive senior-level code review with the following improvements implemented:
+
+#### ✅ Completed
+- **Error Boundary**: Prevents app crashes, shows user-friendly error messages
+- **Centralized Validation**: Reusable validators in `utils/validators.ts`
+- **Custom Hooks**: Extracted reusable logic (`useFaceDetection`, `useLocalStorage`)
+- **TypeScript Strict Mode**: Removed all `any` types, proper type safety
+- **Performance Optimization**: React.memo on expensive components
+- **Consistent Naming**: All components use specific interface names (no generic `Props`)
+- **Constants File**: Application-wide configuration in `constants/index.ts`
+- **JSDoc Documentation**: All public APIs documented with examples
+- **Unit Tests**: Core functionality covered with Vitest
+
+#### 📋 Code Standards
+- **No `any` types**: Full TypeScript type coverage
+- **Consistent interfaces**: All components use `ComponentNameProps` pattern
+- **Error handling**: Try-catch blocks with user-friendly messages
+- **Toast notifications**: All user feedback via react-toastify
+- **Validation**: Input validation at multiple layers
+- **Accessibility**: ARIA labels, keyboard navigation support
+
+### Architecture Patterns
+
+- **Feature-based structure**: Code organized by domain (camera, faces)
+- **Separation of concerns**: Services, state, UI cleanly separated
+- **Dependency injection**: Services passed as props where needed
+- **Immutable state**: Redux Toolkit ensures immutability
+- **Type-safe Redux**: Fully typed actions, reducers, selectors
+
+See [IMPROVEMENTS.md](./IMPROVEMENTS.md) for detailed changelog of all improvements.
 
 ### Manual Test Checklist
 

@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { memo, useEffect, useMemo, useRef } from 'react';
 import type { FaceResult } from '../features/faces/types';
 
-type Props = {
+interface FaceOverlayProps {
   videoRef: HTMLVideoElement | HTMLImageElement | null;
   detections: FaceResult[];
   showExpressions?: boolean;
   mirrored?: boolean;
-};
+}
 
 // Get color based on emotion
 function getEmotionColor(emotion?: string): string {
@@ -26,17 +26,28 @@ function getEmotionColor(emotion?: string): string {
   return colorMap[emotionLower] || '#3b82f6';
 }
 
-export default function FaceOverlay({ videoRef, detections, showExpressions = true, mirrored = false }: Props) {
+function FaceOverlay({ videoRef, detections, showExpressions = true, mirrored = false }: FaceOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const size = useMemo(() => {
     const w = videoRef?.clientWidth ?? 0;
     const h = videoRef?.clientHeight ?? 0;
     const isImg = typeof HTMLImageElement !== 'undefined' && videoRef instanceof HTMLImageElement;
-    const vw = isImg ? (videoRef as HTMLImageElement).naturalWidth || w : (videoRef as HTMLVideoElement | null)?.videoWidth ?? w;
-    const vh = isImg ? (videoRef as HTMLImageElement).naturalHeight || h : (videoRef as HTMLVideoElement | null)?.videoHeight ?? h;
+    const vw = isImg 
+      ? (videoRef as HTMLImageElement).naturalWidth || w 
+      : (videoRef as HTMLVideoElement | null)?.videoWidth ?? w;
+    const vh = isImg 
+      ? (videoRef as HTMLImageElement).naturalHeight || h 
+      : (videoRef as HTMLVideoElement | null)?.videoHeight ?? h;
     return { w, h, vw, vh };
-  }, [videoRef?.clientWidth, videoRef?.clientHeight, (videoRef as any)?.videoWidth, (videoRef as any)?.videoHeight, (videoRef as any)?.naturalWidth, (videoRef as any)?.naturalHeight]);
+  }, [
+    videoRef?.clientWidth, 
+    videoRef?.clientHeight,
+    videoRef instanceof HTMLVideoElement ? videoRef.videoWidth : undefined,
+    videoRef instanceof HTMLVideoElement ? videoRef.videoHeight : undefined,
+    videoRef instanceof HTMLImageElement ? videoRef.naturalWidth : undefined,
+    videoRef instanceof HTMLImageElement ? videoRef.naturalHeight : undefined
+  ]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -170,3 +181,14 @@ export default function FaceOverlay({ videoRef, detections, showExpressions = tr
     <canvas ref={canvasRef} className="position-absolute top-0 start-0 w-100 h-100" style={{ pointerEvents: 'none' }} />
   );
 }
+
+// Memoize component to prevent unnecessary re-renders
+// Only re-render when detections, showExpressions, or mirrored props change
+export default memo(FaceOverlay, (prevProps, nextProps) => {
+  return (
+    prevProps.detections === nextProps.detections &&
+    prevProps.showExpressions === nextProps.showExpressions &&
+    prevProps.mirrored === nextProps.mirrored &&
+    prevProps.videoRef === nextProps.videoRef
+  );
+});

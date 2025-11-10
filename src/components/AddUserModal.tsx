@@ -4,13 +4,13 @@ import { toast } from 'react-toastify';
 import * as faceapi from '@vladmandic/face-api';
 import { addKnownFace } from '../features/faces/Recognition';
 
-type Props = {
+interface AddUserModalProps {
   show: boolean;
   onHide: () => void;
   onUserAdded?: () => void;
-};
+}
 
-export default function AddUserModal({ show, onHide, onUserAdded }: Props) {
+export default function AddUserModal({ show, onHide, onUserAdded }: AddUserModalProps) {
   const [name, setName] = useState('');
   const [dob, setDob] = useState('');
   const [gender, setGender] = useState('');
