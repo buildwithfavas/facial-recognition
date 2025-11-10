@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import { updateFaceByIndex, type KnownFace } from '../features/faces/Recognition';
+import { updateFaceByIndex, getKnownFaces, type KnownFace } from '../features/faces/Recognition';
+import DatePicker from './DatePicker';
 
 interface EditUserModalProps {
   show: boolean;
@@ -21,8 +22,13 @@ export default function EditUserModal({ show, onHide, face, faceIndex, onUserUpd
       setName(face.name);
       setDob(face.dob || '');
       setGender(face.gender || '');
+    } else {
+      // Reset form when no face is selected
+      setName('');
+      setDob('');
+      setGender('');
     }
-  }, [face]);
+  }, [face, show]);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -33,19 +39,30 @@ export default function EditUserModal({ show, onHide, face, faceIndex, onUserUpd
     }
 
     try {
+      const updatedName = name.trim();
+      console.log('Updating user at index', faceIndex, 'with:', { name: updatedName, dob, gender });
+      
       // Update the face name using the Recognition module
-      updateFaceByIndex(faceIndex, name.trim(), dob || undefined, gender || undefined);
+      updateFaceByIndex(faceIndex, updatedName, dob || undefined, gender || undefined);
+      
+      // Verify the update was saved
+      const updatedFaces = getKnownFaces();
+      console.log('Verification - Updated face:', updatedFaces[faceIndex]);
+      
+      console.log('Update successful, notifying parent');
       
       // Notify parent to refresh the list
       onUserUpdated?.();
-      onHide();
       
-      toast.success(`User "${name}" updated successfully!`);
+      toast.success(`User "${updatedName}" updated successfully!`);
+      
+      // Close modal after successful update
+      onHide();
     } catch (error) {
       console.error('Failed to update user:', error);
       toast.error('Failed to update user. Please try again.');
     }
-  }, [name, faceIndex, onHide, onUserUpdated]);
+  }, [name, dob, gender, faceIndex, onHide, onUserUpdated]);
 
   const handleClose = useCallback(() => {
     setName('');
@@ -83,7 +100,6 @@ export default function EditUserModal({ show, onHide, face, faceIndex, onUserUpd
               value={name}
               onChange={(e) => setName(e.target.value)}
               autoFocus
-              required
               style={{
                 backgroundColor: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
@@ -96,25 +112,12 @@ export default function EditUserModal({ show, onHide, face, faceIndex, onUserUpd
             </Form.Text>
           </Form.Group>
 
-          <Form.Group className="mb-4">
-            <Form.Label style={{ fontSize: '14px', fontWeight: '500' }}>Date of Birth</Form.Label>
-            <Form.Control
-              type="date"
-              value={dob}
-              onChange={(e) => setDob(e.target.value)}
-              max={new Date().toISOString().split('T')[0]}
-              style={{
-                backgroundColor: 'var(--bg-secondary)',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-primary)',
-                padding: '10px 12px',
-                colorScheme: 'dark'
-              }}
-            />
-            <Form.Text style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>
-              Used to calculate and display age
-            </Form.Text>
-          </Form.Group>
+          <DatePicker
+            value={dob}
+            onChange={setDob}
+            label="Date of Birth"
+            helpText="Used to calculate and display age"
+          />
 
           <Form.Group className="mb-4">
             <Form.Label style={{ fontSize: '14px', fontWeight: '500' }}>Gender</Form.Label>
@@ -128,7 +131,7 @@ export default function EditUserModal({ show, onHide, face, faceIndex, onUserUpd
                 padding: '10px 12px'
               }}
             >
-              <option value="">Select Gender</option>
+              <option value="" disabled hidden>Select Gender</option>
               <option value="male">Male</option>
               <option value="female">Female</option>
               <option value="other">Other</option>

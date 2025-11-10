@@ -22,12 +22,25 @@ export default function ManageFacesModal({ show, onHide, onFacesChanged }: Manag
   const [editingFace, setEditingFace] = useState<{ face: KnownFace; index: number } | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     if (show) {
+      invalidateCache();
       setFaces(getKnownFaces());
     }
-  }, [show]);
+  }, [show, refreshKey]);
+
+  // Refresh list when edit modal closes
+  useEffect(() => {
+    if (show && !showEditUser) {
+      console.log('Edit modal closed, refreshing user list');
+      invalidateCache();
+      const updatedFaces = getKnownFaces();
+      console.log('Updated faces:', updatedFaces);
+      setFaces(updatedFaces);
+    }
+  }, [show, showEditUser]);
 
   const handleDelete = useCallback((indexToDelete: number) => {
     setConfirmAction({ type: 'delete', data: indexToDelete });
@@ -90,12 +103,17 @@ export default function ManageFacesModal({ show, onHide, onFacesChanged }: Manag
   }, []);
 
   const handleUserUpdated = useCallback(() => {
-    // Refresh the face list
-    setFaces(getKnownFaces());
+    console.log('handleUserUpdated called - refreshing face list');
+    // Invalidate cache first to ensure we get fresh data
+    invalidateCache();
+    // Refresh the face list with a new array to trigger re-render
+    const freshFaces = getKnownFaces();
+    console.log('Fresh faces after update:', freshFaces);
+    setFaces([...freshFaces]);
+    // Force re-render by incrementing refresh key
+    setRefreshKey(prev => prev + 1);
     // Notify parent
     onFacesChanged?.();
-    // Clear editing state
-    invalidateCache();
   }, [onFacesChanged]);
 
   return (
@@ -108,11 +126,15 @@ export default function ManageFacesModal({ show, onHide, onFacesChanged }: Manag
       <EditUserModal
         show={showEditUser}
         onHide={() => {
+          // Invalidate cache and refresh list when closing
+          invalidateCache();
+          setFaces(getKnownFaces());
+          setRefreshKey(prev => prev + 1);
           setShowEditUser(false);
           setEditingFace(null);
         }}
         face={editingFace?.face || null}
-        faceIndex={editingFace?.index || -1}
+        faceIndex={editingFace?.index ?? -1}
         onUserUpdated={handleUserUpdated}
       />
     <Modal 
@@ -183,7 +205,7 @@ export default function ManageFacesModal({ show, onHide, onFacesChanged }: Manag
             <ListGroup variant="flush">
               {faces.map((face, idx) => (
                 <ListGroup.Item 
-                  key={idx}
+                  key={`${face.name}-${idx}-${face.dob || 'no-dob'}-${face.gender || 'no-gender'}-${refreshKey}`}
                   className="d-flex justify-content-between align-items-center"
                   style={{
                     backgroundColor: 'var(--bg-secondary)',

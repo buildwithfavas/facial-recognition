@@ -3,6 +3,7 @@ import { Modal, Form, Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import type { FaceResult } from '../features/faces/types';
 import { addKnownFace } from '../features/faces/Recognition';
+import DatePicker from './DatePicker';
 
 interface RegisterFaceModalProps {
   show: boolean;
@@ -19,7 +20,27 @@ export default function RegisterFaceModal({ show, onHide, faceToRegister, onRegi
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !faceToRegister?.features) return;
+    
+    // Validate all required fields
+    if (!name.trim()) {
+      toast.error('Please enter a name');
+      return;
+    }
+
+    if (!dob) {
+      toast.error('Please select date of birth');
+      return;
+    }
+
+    if (!gender) {
+      toast.error('Please select gender');
+      return;
+    }
+
+    if (!faceToRegister?.features) {
+      toast.error('No face detected');
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -76,7 +97,6 @@ export default function RegisterFaceModal({ show, onHide, faceToRegister, onRegi
               value={name}
               onChange={(e) => setName(e.target.value)}
               autoFocus
-              required
               style={{
                 backgroundColor: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
@@ -88,24 +108,13 @@ export default function RegisterFaceModal({ show, onHide, faceToRegister, onRegi
             </Form.Text>
           </Form.Group>
 
-          <Form.Group className="mb-3">
-            <Form.Label>Date of Birth</Form.Label>
-            <Form.Control
-              type="date"
-              value={dob}
-              onChange={(e) => setDob(e.target.value)}
-              max={new Date().toISOString().split('T')[0]}
-              style={{
-                backgroundColor: 'var(--bg-secondary)',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-primary)',
-                colorScheme: 'dark'
-              }}
-            />
-            <Form.Text style={{ color: 'var(--text-secondary)' }}>
-              Used to calculate and display age when detected.
-            </Form.Text>
-          </Form.Group>
+          <DatePicker
+            value={dob}
+            onChange={setDob}
+            label="Date of Birth"
+            helpText="Used to calculate and display age when detected"
+            required
+          />
 
           <Form.Group className="mb-3">
             <Form.Label>Gender</Form.Label>
@@ -118,7 +127,7 @@ export default function RegisterFaceModal({ show, onHide, faceToRegister, onRegi
                 color: 'var(--text-primary)'
               }}
             >
-              <option value="">Select Gender</option>
+              <option value="" disabled hidden>Select Gender</option>
               <option value="male">Male</option>
               <option value="female">Female</option>
               <option value="other">Other</option>
@@ -158,7 +167,7 @@ export default function RegisterFaceModal({ show, onHide, faceToRegister, onRegi
             <Button 
               variant="primary" 
               type="submit" 
-              disabled={!name.trim() || isSubmitting}
+              disabled={isSubmitting}
             >
               {isSubmitting ? 'Registering...' : 'Register Face'}
             </Button>

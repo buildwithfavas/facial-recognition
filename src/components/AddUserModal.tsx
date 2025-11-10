@@ -3,6 +3,8 @@ import { Modal, Button, Form } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import * as faceapi from '@vladmandic/face-api';
 import { addKnownFace } from '../features/faces/Recognition';
+import { init } from '../features/faces/FaceService';
+import DatePicker from './DatePicker';
 
 interface AddUserModalProps {
   show: boolean;
@@ -70,8 +72,19 @@ export default function AddUserModal({ show, onHide, onUserAdded }: AddUserModal
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate all required fields
     if (!name.trim()) {
       toast.error('Please enter a name');
+      return;
+    }
+
+    if (!dob) {
+      toast.error('Please select date of birth');
+      return;
+    }
+
+    if (!gender) {
+      toast.error('Please select gender');
       return;
     }
 
@@ -83,6 +96,9 @@ export default function AddUserModal({ show, onHide, onUserAdded }: AddUserModal
     setIsSubmitting(true);
 
     try {
+      // Load face-api models if not already loaded
+      await init();
+
       // Create an image element to process
       const img = document.createElement('img');
       img.src = imagePreview;
@@ -163,7 +179,6 @@ export default function AddUserModal({ show, onHide, onUserAdded }: AddUserModal
               placeholder="Enter name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              required
               style={{
                 backgroundColor: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
@@ -173,25 +188,13 @@ export default function AddUserModal({ show, onHide, onUserAdded }: AddUserModal
             />
           </Form.Group>
 
-          <Form.Group className="mb-3">
-            <Form.Label style={{ fontSize: '14px', fontWeight: '500' }}>Date of Birth</Form.Label>
-            <Form.Control
-              type="date"
-              value={dob}
-              onChange={(e) => setDob(e.target.value)}
-              max={new Date().toISOString().split('T')[0]}
-              style={{
-                backgroundColor: 'var(--bg-secondary)',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-primary)',
-                padding: '10px 12px',
-                colorScheme: 'dark'
-              }}
-            />
-            <Form.Text style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>
-              Used to calculate and display age
-            </Form.Text>
-          </Form.Group>
+          <DatePicker
+            value={dob}
+            onChange={setDob}
+            label="Date of Birth"
+            helpText="Used to calculate and display age"
+            required
+          />
 
           <Form.Group className="mb-3">
             <Form.Label style={{ fontSize: '14px', fontWeight: '500' }}>Gender</Form.Label>
@@ -205,7 +208,7 @@ export default function AddUserModal({ show, onHide, onUserAdded }: AddUserModal
                 padding: '10px 12px'
               }}
             >
-              <option value="">Select Gender</option>
+              <option value="" disabled hidden>Select Gender</option>
               <option value="male">Male</option>
               <option value="female">Female</option>
               <option value="other">Other</option>

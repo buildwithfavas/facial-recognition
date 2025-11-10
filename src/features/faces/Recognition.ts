@@ -128,6 +128,9 @@ export function updateFaceByIndex(index: number, name: string, dob?: string, gen
   if (index >= 0 && index < list.length) {
     list[index] = { ...list[index], name, dob, gender };
     saveKnownFaces(list);
+    // Force cache invalidation to ensure fresh data on next read
+    cache = null;
+    console.log('Updated face at index', index, 'New data:', list[index]);
   }
 }
 
