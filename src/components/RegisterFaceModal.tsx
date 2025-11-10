@@ -90,7 +90,10 @@ export default function RegisterFaceModal({ show, onHide, faceToRegister, onRegi
       <Modal.Body style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)' }}>
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
-            <Form.Label>Person's Name</Form.Label>
+            <Form.Label>
+              Person's Name
+              <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>
+            </Form.Label>
             <Form.Control
               type="text"
               placeholder="Enter name"
@@ -117,7 +120,10 @@ export default function RegisterFaceModal({ show, onHide, faceToRegister, onRegi
           />
 
           <Form.Group className="mb-3">
-            <Form.Label>Gender</Form.Label>
+            <Form.Label>
+              Gender
+              <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>
+            </Form.Label>
             <Form.Select
               value={gender}
               onChange={(e) => setGender(e.target.value)}

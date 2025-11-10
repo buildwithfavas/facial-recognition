@@ -34,10 +34,8 @@ export default function ManageFacesModal({ show, onHide, onFacesChanged }: Manag
   // Refresh list when edit modal closes
   useEffect(() => {
     if (show && !showEditUser) {
-      console.log('Edit modal closed, refreshing user list');
       invalidateCache();
       const updatedFaces = getKnownFaces();
-      console.log('Updated faces:', updatedFaces);
       setFaces(updatedFaces);
     }
   }, [show, showEditUser]);
@@ -103,12 +101,10 @@ export default function ManageFacesModal({ show, onHide, onFacesChanged }: Manag
   }, []);
 
   const handleUserUpdated = useCallback(() => {
-    console.log('handleUserUpdated called - refreshing face list');
     // Invalidate cache first to ensure we get fresh data
     invalidateCache();
     // Refresh the face list with a new array to trigger re-render
     const freshFaces = getKnownFaces();
-    console.log('Fresh faces after update:', freshFaces);
     setFaces([...freshFaces]);
     // Force re-render by incrementing refresh key
     setRefreshKey(prev => prev + 1);

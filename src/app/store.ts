@@ -7,6 +7,15 @@ export const store = configureStore({
     camera: cameraReducer,
     faces: facesReducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        // Ignore these paths in the state because face detection results
+        // from face-api.js contain non-serializable data (expressions objects)
+        ignoredActions: ['faces/setDetections'],
+        ignoredPaths: ['faces.detections'],
+      },
+    }),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

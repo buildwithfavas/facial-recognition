@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import { updateFaceByIndex, getKnownFaces, type KnownFace } from '../features/faces/Recognition';
+import { updateFaceByIndex, type KnownFace } from '../features/faces/Recognition';
 import DatePicker from './DatePicker';
 
 interface EditUserModalProps {
@@ -40,16 +40,9 @@ export default function EditUserModal({ show, onHide, face, faceIndex, onUserUpd
 
     try {
       const updatedName = name.trim();
-      console.log('Updating user at index', faceIndex, 'with:', { name: updatedName, dob, gender });
       
       // Update the face name using the Recognition module
       updateFaceByIndex(faceIndex, updatedName, dob || undefined, gender || undefined);
-      
-      // Verify the update was saved
-      const updatedFaces = getKnownFaces();
-      console.log('Verification - Updated face:', updatedFaces[faceIndex]);
-      
-      console.log('Update successful, notifying parent');
       
       // Notify parent to refresh the list
       onUserUpdated?.();
@@ -93,7 +86,10 @@ export default function EditUserModal({ show, onHide, face, faceIndex, onUserUpd
       <Modal.Body style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)', padding: '24px' }}>
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-4">
-            <Form.Label style={{ fontSize: '14px', fontWeight: '500' }}>Name</Form.Label>
+            <Form.Label style={{ fontSize: '14px', fontWeight: '500' }}>
+              Name
+              <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>
+            </Form.Label>
             <Form.Control
               type="text"
               placeholder="Enter name"
@@ -117,10 +113,14 @@ export default function EditUserModal({ show, onHide, face, faceIndex, onUserUpd
             onChange={setDob}
             label="Date of Birth"
             helpText="Used to calculate and display age"
+            required
           />
 
           <Form.Group className="mb-4">
-            <Form.Label style={{ fontSize: '14px', fontWeight: '500' }}>Gender</Form.Label>
+            <Form.Label style={{ fontSize: '14px', fontWeight: '500' }}>
+              Gender
+              <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>
+            </Form.Label>
             <Form.Select
               value={gender}
               onChange={(e) => setGender(e.target.value)}

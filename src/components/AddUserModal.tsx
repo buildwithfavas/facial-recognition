@@ -173,7 +173,10 @@ export default function AddUserModal({ show, onHide, onUserAdded }: AddUserModal
       <Modal.Body style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)', padding: '24px' }}>
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
-            <Form.Label style={{ fontSize: '14px', fontWeight: '500' }}>Name</Form.Label>
+            <Form.Label style={{ fontSize: '14px', fontWeight: '500' }}>
+              Name
+              <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>
+            </Form.Label>
             <Form.Control
               type="text"
               placeholder="Enter name"
@@ -197,7 +200,10 @@ export default function AddUserModal({ show, onHide, onUserAdded }: AddUserModal
           />
 
           <Form.Group className="mb-3">
-            <Form.Label style={{ fontSize: '14px', fontWeight: '500' }}>Gender</Form.Label>
+            <Form.Label style={{ fontSize: '14px', fontWeight: '500' }}>
+              Gender
+              <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>
+            </Form.Label>
             <Form.Select
               value={gender}
               onChange={(e) => setGender(e.target.value)}
@@ -216,7 +222,10 @@ export default function AddUserModal({ show, onHide, onUserAdded }: AddUserModal
           </Form.Group>
 
           <Form.Group className="mb-4">
-            <Form.Label style={{ fontSize: '14px', fontWeight: '500' }}>Image</Form.Label>
+            <Form.Label style={{ fontSize: '14px', fontWeight: '500' }}>
+              Image
+              <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>
+            </Form.Label>
             <input
               ref={fileInputRef}
               type="file"
