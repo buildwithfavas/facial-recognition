@@ -54,7 +54,12 @@ export default function WebcamFeed({ onCapture, mirrored = false, captureRef, fa
         screenshotFormat="image/jpeg"
         videoConstraints={videoConstraints}
         mirrored={mirrored}
-        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+        style={{ 
+          width: '100%', 
+          height: '100%', 
+          objectFit: 'contain',
+          aspectRatio: '4 / 3'
+        }}
       />
     ) : (
       <div className="bg-light border d-flex align-items-center justify-content-center w-100 h-100">

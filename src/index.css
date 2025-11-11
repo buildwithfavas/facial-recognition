@@ -136,12 +136,18 @@ body {
   aspect-ratio: 16 / 9;
 }
 
+/* Smooth video loading to prevent layout shifts */
+.video-container video {
+  transition: none;
+  display: block;
+}
+
 /* On mobile, use fixed height to prevent stretching */
 @media (max-width: 991px) {
   .video-container {
     aspect-ratio: 4 / 3;
     height: auto;
-    min-height: 0;
+    min-height: 280px;
     max-height: 350px;
   }
 }
