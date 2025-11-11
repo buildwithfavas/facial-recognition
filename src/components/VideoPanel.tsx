@@ -35,7 +35,7 @@ export default function VideoPanel({
   onCapture,
 }: VideoPanelProps) {
   return (
-    <Col xs={12} lg={8} className="d-flex" style={{ backgroundColor: 'var(--bg-primary)', padding: '12px' }}>
+    <Col xs={12} lg={8} className="d-flex video-panel-col" style={{ backgroundColor: 'var(--bg-primary)', padding: '12px' }}>
       <div className="w-100" style={{ position: 'relative' }}>
         {fallbackMsg && (
           <Alert variant="warning" className="mb-3">

@@ -136,12 +136,26 @@ body {
   aspect-ratio: 16 / 9;
 }
 
-/* On mobile, use auto height to fit content better */
+/* On mobile, use fixed height to prevent stretching */
 @media (max-width: 991px) {
   .video-container {
     aspect-ratio: 4 / 3;
-    min-height: 280px;
-    max-height: 400px;
+    height: auto;
+    min-height: 0;
+    max-height: 350px;
+  }
+}
+
+/* Prevent column stretching on mobile */
+@media (max-width: 991px) {
+  .video-panel-col {
+    min-height: 0 !important;
+    flex-grow: 0 !important;
+  }
+  
+  /* Remove min-height from rows on mobile to prevent excessive spacing */
+  .row {
+    min-height: auto !important;
   }
 }
 
