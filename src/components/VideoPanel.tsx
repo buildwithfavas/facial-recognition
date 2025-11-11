@@ -15,6 +15,7 @@ interface VideoPanelProps {
   captureRef: React.MutableRefObject<(() => void) | null>;
   facingMode: 'user' | 'environment';
   onCapture: (dataUrl: string) => void;
+  isDetecting: boolean;
 }
 
 /**
@@ -33,6 +34,7 @@ export default function VideoPanel({
   captureRef,
   facingMode,
   onCapture,
+  isDetecting,
 }: VideoPanelProps) {
   return (
     <Col xs={12} lg={8} className="d-flex video-panel-col" style={{ backgroundColor: 'var(--bg-primary)', padding: '12px' }}>
@@ -93,6 +95,44 @@ export default function VideoPanel({
                     mirrored 
                   />
                 </div>
+                {isDetecting && detections.length === 0 && (
+                  <div 
+                    className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                    style={{ 
+                      pointerEvents: 'none',
+                      backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                      backdropFilter: 'blur(2px)'
+                    }}
+                  >
+                    <div 
+                      style={{
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: '20px 30px',
+                        borderRadius: '12px',
+                        textAlign: 'center',
+                        maxWidth: '300px'
+                      }}
+                    >
+                      <div 
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          border: '4px solid var(--accent-blue)',
+                          borderTopColor: 'transparent',
+                          borderRadius: '50%',
+                          animation: 'spin 0.8s linear infinite',
+                          margin: '0 auto 16px'
+                        }}
+                      />
+                      <div style={{ color: 'white', fontSize: '16px', fontWeight: '600', marginBottom: '8px' }}>
+                        Initializing face detection...
+                      </div>
+                      <div style={{ color: '#9ca3af', fontSize: '13px' }}>
+                        Please wait while we prepare the camera
+                      </div>
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
               <>

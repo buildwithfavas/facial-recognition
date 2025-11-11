@@ -8,16 +8,17 @@ import ManageFacesModal from '../components/ManageFacesModal';
 import Navbar from '../components/Navbar';
 import SettingsModal from '../components/SettingsModal';
 import VideoPanel from '../components/VideoPanel';
-import { useDetectionSettings } from '../hooks';
 import { startDetectionLoop, stopDetectionLoop } from '../features/camera/CameraService';
 import { selectStreaming, startStream, stopStream } from '../features/camera/CameraSlice';
 import { detectFaces } from '../features/faces/FaceService';
 import { clearDetections, setDetections } from '../features/faces/FacesSlice';
 import type { FaceResult } from '../features/faces/types';
+import { useDetectionSettings } from '../hooks';
 
 export default function Home() {
   const dispatch = useDispatch<AppDispatch>();
   const detections = useSelector((s: RootState) => s.faces.detections);
+  const isDetecting = useSelector((s: RootState) => s.faces.isDetecting);
   const streaming = useSelector(selectStreaming);
 
   const videoWrapRef = useRef<HTMLDivElement>(null);
@@ -32,7 +33,7 @@ export default function Home() {
   const [showHelp, setShowHelp] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
-  
+
   // Use custom hook for detection settings
   const {
     showExpressions,
@@ -200,6 +201,7 @@ export default function Home() {
             captureRef={captureRef}
             facingMode={facingMode}
             onCapture={handleCapture}
+            isDetecting={isDetecting}
           />
           
           <DetectionSidebar
